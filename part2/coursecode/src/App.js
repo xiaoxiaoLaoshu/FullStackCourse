@@ -1,6 +1,6 @@
 import React, {useState, useEffect} from 'react'
 import Note from './component/note'
-import axios from 'axios'
+import noteService from './services/notes'
 
 const App = () => {
   const [notes, setNotes] = useState([])
@@ -8,33 +8,41 @@ const App = () => {
   const [showAll, setShowAll] = useState(true)
 
   useEffect(() => {
-    console.log('effect');
-    axios.get('http://localhost:3002/notes')
-    .then(response => {
-      console.log('promise fulfilled');
-      setNotes(response.data)
+    noteService.getAll()
+    .then(initialNotes => {
+      setNotes(initialNotes)
     })
   }, [])
-
-  console.log('render', notes.length, 'notes');
 
   const addNote = (event) => {
     event.preventDefault()
     const newNoteObj = {
       content: newNote,
-      data: new Date().toISOString(),
+      date: new Date().toISOString(),
       important: Math.random() < 0.5,
       id: notes.length + 1
     }
-
-    setNewNote('')
-    setNotes(notes.concat(newNoteObj))
+    noteService.create(newNoteObj)
+    .then(returnedNote => {
+      setNotes(notes.concat(returnedNote))
+      setNewNote('')
+    })
   }
   const handleInput = (event) => {
     setNewNote(event.target.value)
   }
 
+  const toggleImportance = (id) => {
+    const note = notes.find(n => n.id === id)
+    const changeNote = {...note, important: !note.important}
+    noteService.update(id, changeNote).then(returnedNote => {
+      // 修改完数据后，发送给后台，后台返回修改后的对象元素，使用 map 实现对象数组指定对象元素修改
+      setNotes(notes.map(note => note.id === id ? returnedNote : note))
+    })
+  }
+
   const showToImpor = showAll ? notes : notes.filter(note => note.important)
+  console.log('notes', notes)
   return (
     <div>
       <h1>Notes</h1>
@@ -42,7 +50,7 @@ const App = () => {
         <button onClick={() => setShowAll(!showAll)}>show {showAll ? 'important' : 'all'}</button>
       </div>
       <ul>
-        {showToImpor.map((note) => <Note note={note} key={note.id}></Note>)}
+        {showToImpor.map((note, index) => <Note note={note} toggleImportance={toggleImportance} key={note.id}></Note>)}
       </ul>
       <form onSubmit={(event) => {
         addNote(event)
