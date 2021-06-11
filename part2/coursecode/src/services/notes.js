@@ -12,9 +12,11 @@ const create = (newNoteObj) => {
     return request.then(response => response.data).catch(error => console.log(error))
 }
 
-const update = (id, newNoteObj) => {
-    const request =  axios.put(`${baseUrl}/${id}`, newNoteObj)
-    return request.then(response =>response.data).catch(error => console.log(error))
+const update = (newNoteObj) => {
+    const request =  axios.put(`${baseUrl}/${newNoteObj.id}`, newNoteObj)
+    return request.then(response =>response.data).catch(error => {
+        console.log('error', error)
+    })
 }
 
 export default {
