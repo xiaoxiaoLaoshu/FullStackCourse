@@ -2,6 +2,17 @@ const express = require('express')
 const app = express()
 app.use(express.json())
 
+const requestMiddle = require('./middleware/requestLogger') 
+// const requestLogger = (request, response, next) => {
+//     console.log('Method', request.method)
+//     console.log('Path', request.path)
+//     console.log('Body', request.body)
+//     console.log("----");
+//     next()
+// }
+
+
+app.use(requestMiddle.requestLogger)
 let notes = [
     {
         id: 1,
@@ -121,6 +132,8 @@ app.delete('/api/notes/:id',(request, response) => {
 
     response.status(204).end()
 })
+
+app.use(requestMiddle.unknownEndpoint)
 
 const PORT = 3001
 app.listen(PORT, () => {
